@@ -30,7 +30,6 @@ namespace Brisca
 
         const String CARTA_GIRADA = "ms-appx:///Assets/Images/back.png";
 
-        bool joc_iniciat = false;
         List<Carta> cartesJugables = new List<Carta>();
         List<Carta> cartesJugades = new List<Carta>();
         List<Jugador> jugadors = new List<Jugador>();
@@ -40,10 +39,20 @@ namespace Brisca
         Carta triomf;
         triomfVista ptriomf;
 
-        List<Carta> trobarGuanyador = new List<Carta>();
+        List<(Carta, Jugador)> trobarGuanyador = new List<(Carta, Jugador)>();
+        List<(Carta, Jugador)> mateixPal = new List<(Carta, Jugador)>();
+        List<(Carta, Jugador)> diferentPal = new List<(Carta, Jugador)>();
 
         zonaDeJoc zonaj;
         List<pantallaJugador> pJugador;
+
+        int fiPartida = 0;
+        int idxComparacio = 0;
+
+        bool guanyadorTrobat = false;
+        int cartesRepartides = 12;
+
+        /*VARIABLES DE PROVA*/
         public MainPage()
         {
             this.InitializeComponent();
@@ -98,16 +107,7 @@ namespace Brisca
 
         private void CargarPartida(object sender, DependencyPropertyChangedEventArgs e)
         {
-            //carregar imatges per usuari 
-            /* 
-             *  List<Jugador> jugadors  (imagenes)
-             * 
-             * 0-2   --> Jugador 1
-             * 3-5   --> Jugador 2
-             * 6-8   --> Jugador 3
-             * 9-11  --> Jugador 4
-             */
-            
+
             Random r = new Random();
             int idxCarta = 0; ;
 
@@ -117,11 +117,11 @@ namespace Brisca
             for (int i = 0; i < pJugador.Count; i++)
             {
                 jugadors.Add(new Jugador(pJugador[i].txbJugadorUC.Text, false));
+
                 for (int j = 0; j < MAX_CARTES_JUGADOR; j++)
                 {
                     idxCarta = r.Next(cartesJugables.Count);
                     //AFEGIM LES CARTES (MAXIM 3) A CADA USUARI
-                    //debugWindows.Text += cartesJugables.Count.ToString() + "\n";
                     jugadors[i].Carta_jugador.Add(cartesJugables[idxCarta]);
                     cartesJugades.Add(cartesJugables[idxCarta]);
                     cartesJugables.Remove(cartesJugables[idxCarta]);
@@ -134,8 +134,6 @@ namespace Brisca
 
             for (int i = 0; i < pJugador.Count; i++)
             {
-                //provisional
-                pJugador[i].txbJugadorUC.Text = "Jugador " + (i + 1);
 
                 pJugador[i].img1UC.Source = new BitmapImage(new Uri(jugadors[i].Carta_jugador[0].RutaCarta));
                 pJugador[i].img1UC.Tapped += Im_Tapped;
@@ -167,7 +165,7 @@ namespace Brisca
             ptriomf.imgTriomfUC.Source = new BitmapImage(new Uri(triomf.RutaCarta));
 
             cartesJugades.Add(triomf);
-            cartesJugables.Remove(cartesJugables[idxTriomf]);
+            cartesJugables.Remove(triomf);
 
         }
 
@@ -180,7 +178,6 @@ namespace Brisca
                 if (!jugadors[i].Torn)
                 {
                     //No es el seu torn
-
                     //tapem nomes les cartes exitents
 
                     if(pJugador[i].img1UC.Source == null)
@@ -214,8 +211,6 @@ namespace Brisca
                 else
                 {
                     //torn
-
-                    debugWindows.Text += "Torn: " + jugadors[i].Nom.ToString() + "  -Volta: " + volta + "  -Cartes restants: " + cartesJugables.Count +"\n";
                     pJugador[i].img1BackUC.Visibility = Visibility.Collapsed;
                     pJugador[i].img2BackUC.Visibility = Visibility.Collapsed;
                     pJugador[i].img3BackUC.Visibility = Visibility.Collapsed;
@@ -225,7 +220,9 @@ namespace Brisca
             volta++;
             if (volta == 4)
             {
-                volta = 0;
+                volta = 0;//Reiniciem el contador de voltes
+
+                //borrem les cartes jugades anteriorment
                 zonaj.imgCartaJugada1UC.Source = null;
                 zonaj.imgCartaJugada2UC.Source = null;
                 zonaj.imgCartaJugada3UC.Source = null;
@@ -233,6 +230,7 @@ namespace Brisca
 
                 for (int i = 0; i < pJugador.Count; i++)
                 {
+                    //repartim les cartes
                     if (pJugador[i].img1UC == null)
                     {
                         pJugador[i].img1UC.Source = new BitmapImage(new Uri(jugadors[i].Carta_jugador[0].RutaCarta));
@@ -246,54 +244,139 @@ namespace Brisca
                         pJugador[i].img3UC.Source = new BitmapImage(new Uri(jugadors[i].Carta_jugador[2].RutaCarta));
                     }
                 }
-                //Informació de victoria per al jugador (imprimir un cop amb el nom del guanyador)
-                //debugWindows.Text += "Guanya ~NomJugador~ amb ~puntuació~" + "\n" + "Triomf: " + triomf.Nom_carta;
-
-                debugWindows.Text += "TOTAL CARTES JUGADES: " + trobarGuanyador.Count.ToString() + "\n";
 
                 for (int i = 0; i < trobarGuanyador.Count; i++)
                 {
-                    if (trobarGuanyador[i].Pal_carta.Equals(triomf.Pal_carta))
+                    //només entra si el pal d'alguna carta es el triomf
+                    if (trobarGuanyador[i].Item1.Pal_carta.Equals(triomf.Pal_carta))
                     {
-                        switch (trobarGuanyador[i].Num_carta)
-                        {
-                            case 1:
-                                //11
-                                jugadors[i].Puntuacio += 11;
-                                break;
-                            case 3:
-                                //10
-                                jugadors[i].Puntuacio += 10;
-                                break;
-                            case 12:
-                                //4
-                                jugadors[i].Puntuacio += 4;
-                                break;
-                            case 11:
-                                //3
-                                jugadors[i].Puntuacio += 3;
-                                break;
-                            case 10:
-                                //2
-                                jugadors[i].Puntuacio += 2;
-                                break;
-                        }
-
-                        debugWindows.Text += "Guanyador jugador : " + i + "\n" + "Punts: " + jugadors[i].Puntuacio;
-                        break;
+                        mateixPal.Add(trobarGuanyador[i]);
+                    }
+                    else
+                    {
+                         diferentPal.Add(trobarGuanyador[i]);
                     }
                 }
+
+                if (mateixPal.Count == 0)
+                {
+                    //totes les cartes comparteixen pal amb el triomf
+                    /* 1   -- 11
+                    * 3   -- 10
+                    * 12  --  4
+                    * 11  --  3
+                    * 10  --  2
+                    * .   --  1
+                    */
+                    diferentPal = diferentPal.OrderBy(pair => pair.Item1.Num_carta).ToList();
+                    if(diferentPal[0].Item1.Num_carta == 1 || diferentPal[0].Item1.Num_carta == 3)
+                    {
+                        idxComparacio = 0;
+                    }
+                    else if (diferentPal[0].Item1.Num_carta == 2 && diferentPal[1].Item1.Num_carta == 3)
+                    {
+                        idxComparacio = 1;
+                    }
+                    else
+                    {
+                        idxComparacio = diferentPal.Count - 1;
+                    }
+                    switch (diferentPal[idxComparacio].Item1.Num_carta)
+                    {
+                        case 1:
+                            sumarPunts(11, diferentPal);
+                            break;
+                        case 3:
+                            sumarPunts(10, diferentPal);
+                            break;
+                        case 12:
+                            sumarPunts(4, diferentPal);
+                            break;
+                        case 11:
+                            sumarPunts(3, diferentPal);
+                            break;
+                        case 10:
+                            sumarPunts(2, diferentPal);
+                            break;
+                        case 9:
+                        case 8:
+                        case 7:
+                        case 6:
+                        case 5:
+                        case 4:
+                        case 2:
+                            sumarPunts(1, diferentPal);
+                            break;
+                        default:
+                            sumarPunts(0, diferentPal);
+                            break;
+                    }
+                }
+                else
+                {
+                    mateixPal = mateixPal.OrderBy(pair => pair.Item1.Num_carta).ToList();
+                    if (mateixPal[0].Item1.Num_carta == 1 || mateixPal[0].Item1.Num_carta == 3)
+                    {
+                        idxComparacio = 0;
+                    }
+                    else if (mateixPal[0].Item1.Num_carta == 2 && mateixPal[1].Item1.Num_carta == 3)
+                    {
+                        idxComparacio = 1;
+                    }
+                    else
+                    {
+                        idxComparacio = mateixPal.Count - 1;
+                    }
+                    switch (mateixPal[idxComparacio].Item1.Num_carta)
+                    {
+                        case 1:
+                            sumarPunts(11, mateixPal);
+                            break;
+                        case 3:
+                            sumarPunts(10, mateixPal);
+                            break;
+                        case 12:
+                            sumarPunts(4, mateixPal);
+                            break;
+                        case 11:
+                            sumarPunts(3, mateixPal);
+                            break;
+                        case 10:
+                            sumarPunts(2, mateixPal);
+                            break;
+                        case 9:
+                        case 8:
+                        case 7:
+                        case 6:
+                        case 5:
+                        case 4:
+                        case 2:
+                            sumarPunts(1, mateixPal);
+                            break;
+                        default:
+                            sumarPunts(0, mateixPal);
+                            break;
+                    }
+                }
+
+                idxComparacio = 0;
+
+                diferentPal.Clear();
+                mateixPal.Clear();
                 trobarGuanyador.Clear();
 
                 //GUANYADOR DE LA PARTIDA
-                //if(cartesJugades.Count == 48)
-                if (jugadors[0].Carta_jugador.Count == 0 && jugadors[1].Carta_jugador.Count == 0 && jugadors[2].Carta_jugador.Count == 0 && jugadors[3].Carta_jugador.Count == 0)
-                {
-                    jugadors.Sort();
-                    debugWindows.Text += "FI PARTIDA";
-                    debugWindows.Text += "Guanyador: " + jugadors[0].Nom;
+                for (int i = 0; i < jugadors.Count; i++) {
+                    if (jugadors[i].Torn && zonaj.imgCartaJugada4UC.Source == null && cartesRepartides == 48 && fiPartida == 2)
+                    {
+                        jugadors = jugadors.OrderByDescending(pair => pair.Puntuacio).ToList();
+                        debugWindows.Text = "FI PARTIDA \n";
+                        debugWindows.Text += "Guanyador: " + jugadors[0].Nom + " amb " + jugadors[0].Puntuacio + " punts";
+                    }else if (jugadors[i].Torn && zonaj.imgCartaJugada4UC.Source == null && cartesRepartides == 48)
+                    {
+                        fiPartida++;
+                    }
                 }
-                
             }
 
             for (int i = 0; i < jugadors.Count; i++)
@@ -307,14 +390,28 @@ namespace Brisca
                     break;
                 }
             }
-
         }
+
+        private void sumarPunts(int punts, List<(Carta,Jugador)> l)
+        {
+            //trobar el jugador que a guanyat
+            int guanya = 0;
+            for (int i = 0; i < jugadors.Count; i++)
+            {
+                if (jugadors[i].Nom.Equals(l[idxComparacio].Item2.Nom))
+                {
+                    guanya = i; 
+                    break;
+                }
+            }
+            debugWindows.Text = "Jugador " + jugadors[guanya].Nom + " guanya " + punts +" punts\n";
+            jugadors[guanya].Puntuacio += punts;
+            pJugador[guanya].txbPuntuacioUC.Text = jugadors[guanya].Puntuacio + "";
+        }
+
 
         public void Im_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            //funcio per controlar carta seleccionada del usuari
-            //(primer comprobar si es el torn del usuari, si ho es la carta va al centre,
-            //si no, no fa res (només té que deixar al usuari amb torn true))
             Image im = sender as Image;
             Random r = new Random();
             int idxRNG = 0;
@@ -323,37 +420,50 @@ namespace Brisca
 
             for (int i = 0; i < cartesJugades.Count; i++)
             {
-                /**
-                 * Atributs necesaris per calcular qui guanya i puntuacio 
-                 */
-
                 if (cartesJugades[i].Id.Equals(im.Tag) && volta == 0)
                 {
                     zonaj.imgCartaJugada1UC.Source = new BitmapImage(new Uri(cartesJugades[i].RutaCarta));
-                    debugWindows.Text += cartesJugades[i].Num_carta + "\n";
-                    debugWindows.Text += cartesJugades[i].Pal_carta + "\n";
-                    trobarGuanyador.Add(cartesJugades[i]);
+
+                    for(int j = 0; j < jugadors.Count; j++)
+                    {
+                        if (jugadors[j].Torn)
+                        {
+                            trobarGuanyador.Add((cartesJugades[i], jugadors[j]));
+                        }
+                    }
                 }
                 if (cartesJugades[i].Id.Equals(im.Tag) && volta == 1)
                 {
                     zonaj.imgCartaJugada2UC.Source = new BitmapImage(new Uri(cartesJugades[i].RutaCarta));
-                    debugWindows.Text += cartesJugades[i].Num_carta + "\n";
-                    debugWindows.Text += cartesJugades[i].Pal_carta + "\n";
-                    trobarGuanyador.Add(cartesJugades[i]);
+                    for (int j = 0; j < jugadors.Count; j++)
+                    {
+                        if (jugadors[j].Torn)
+                        {
+                            trobarGuanyador.Add((cartesJugades[i], jugadors[j]));
+                        }
+                    }
                 }
                 if (cartesJugades[i].Id.Equals(im.Tag) && volta == 2)
                 {
                     zonaj.imgCartaJugada3UC.Source = new BitmapImage(new Uri(cartesJugades[i].RutaCarta));
-                    debugWindows.Text += cartesJugades[i].Num_carta + "\n";
-                    debugWindows.Text += cartesJugades[i].Pal_carta + "\n";
-                    trobarGuanyador.Add(cartesJugades[i]);
+                    for (int j = 0; j < jugadors.Count; j++)
+                    {
+                        if (jugadors[j].Torn)
+                        {
+                            trobarGuanyador.Add((cartesJugades[i], jugadors[j]));
+                        }
+                    }
                 }
                 if (cartesJugades[i].Id.Equals(im.Tag) && volta == 3)
                 {
                     zonaj.imgCartaJugada4UC.Source = new BitmapImage(new Uri(cartesJugades[i].RutaCarta));
-                    debugWindows.Text += cartesJugades[i].Num_carta + "\n";
-                    debugWindows.Text += cartesJugades[i].Pal_carta + "\n";
-                    trobarGuanyador.Add(cartesJugades[i]);
+                    for (int j = 0; j < jugadors.Count; j++)
+                    {
+                        if (jugadors[j].Torn)
+                        {
+                            trobarGuanyador.Add((cartesJugades[i], jugadors[j]));
+                        }
+                    }
                 }
             }
 
@@ -362,9 +472,6 @@ namespace Brisca
                 //comprobem el torn del jugador i el pasem al següent
                 if (jugadors[i].Torn)
                 {
-                    //treure la carta del jugador y pasarali una altre
-
-                    debugWindows.Text += "ImTag: " + im.Tag + "\n";
 
                     if (pJugador[i].img1UC.Tag.Equals(im.Tag))
                     {
@@ -378,7 +485,7 @@ namespace Brisca
                             cartesJugables.Remove(cartesJugables[idxRNG]);
                             pJugador[i].img1UC.Source = new BitmapImage(new Uri(jugadors[i].Carta_jugador[0].RutaCarta));
                             pJugador[i].img1UC.Tag = jugadors[i].Carta_jugador[0].Id;
-                            debugWindows.Text += "Carta pasada: IMG1 - " + pJugador[i].img1UC.Tag + "\n";
+                            cartesRepartides++;
                         }
                     }
                     if (pJugador[i].img2UC.Tag.Equals(im.Tag))
@@ -393,9 +500,7 @@ namespace Brisca
                             cartesJugables.Remove(cartesJugables[idxRNG]);
                             pJugador[i].img2UC.Source = new BitmapImage(new Uri(jugadors[i].Carta_jugador[1].RutaCarta));
                             pJugador[i].img2UC.Tag = jugadors[i].Carta_jugador[1].Id;
-                            debugWindows.Text += "Carta pasada: IMG2 - " + pJugador[i].img2UC.Tag + "\n" ;
-                            debugWindows.Text += "Nova carta: " + jugadors[i].Carta_jugador[1].Id + "\n";
-                            debugWindows.Text += "-------------------\n";
+                            cartesRepartides++;
                         }
                     }
                     if (pJugador[i].img3UC.Tag.Equals(im.Tag))
@@ -410,7 +515,7 @@ namespace Brisca
                             cartesJugables.Remove(cartesJugables[idxRNG]);
                             pJugador[i].img3UC.Source = new BitmapImage(new Uri(jugadors[i].Carta_jugador[2].RutaCarta));
                             pJugador[i].img3UC.Tag = jugadors[i].Carta_jugador[2].Id;
-                            debugWindows.Text += "Carta pasada: IMG3 - " + pJugador[i].img3UC.Tag + "\n";
+                            cartesRepartides++;
                         }
                     }
                     
@@ -420,15 +525,58 @@ namespace Brisca
                     if (i == 3)//3 hardcodejat => numero de jugadors
                     {
                         jugadors[0].Torn = true;
+                        if (cartesRepartides == 47 && pJugador[0].img1UC.Source == null)
+                        {
+                            pJugador[0].img1UC.Source = new BitmapImage(new Uri(triomf.RutaCarta));
+                            pJugador[0].img1UC.Tag = triomf.Id;
+                            ptriomf.imgTriomfUC.Visibility = Visibility.Collapsed;
+                            cartesRepartides++;
+                        }else
+                        if (cartesRepartides == 47 && pJugador[0].img2UC.Source == null)
+                        {
+                            pJugador[0].img2UC.Source = new BitmapImage(new Uri(triomf.RutaCarta));
+                            pJugador[0].img2UC.Tag = triomf.Id;
+                            ptriomf.imgTriomfUC.Visibility = Visibility.Collapsed;
+                            cartesRepartides++;
+                        }else
+                        if (cartesRepartides == 47 && pJugador[0].img3UC.Source == null)
+                        {
+                            pJugador[0].img3UC.Source = new BitmapImage(new Uri(triomf.RutaCarta));
+                            pJugador[0].img3UC.Tag = triomf.Id;
+                            ptriomf.imgTriomfUC.Visibility = Visibility.Collapsed;
+                            cartesRepartides++;
+                        }
                     }
                     else
                     {
                         jugadors[i+1].Torn = true;
                         trobat = true;
+                        if (cartesRepartides == 47 && pJugador[i+1].img1UC.Source == null)
+                        {
+                            pJugador[i+1].img1UC.Source = new BitmapImage(new Uri(triomf.RutaCarta));
+                            pJugador[i+1].img1UC.Tag = triomf.Id;
+                            ptriomf.imgTriomfUC.Visibility = Visibility.Collapsed;
+                            cartesRepartides++;
+                        }
+                        else
+                        if (cartesRepartides == 47 && pJugador[i+1].img2UC.Source == null)
+                        {
+                            pJugador[i+1].img2UC.Source = new BitmapImage(new Uri(triomf.RutaCarta));
+                            pJugador[i+1].img2UC.Tag = triomf.Id;
+                            ptriomf.imgTriomfUC.Visibility = Visibility.Collapsed;
+                            cartesRepartides++;
+                        }
+                        else
+                        if (cartesRepartides == 47 && pJugador[i+1].img3UC.Source == null)
+                        {
+                            pJugador[i+1].img3UC.Source = new BitmapImage(new Uri(triomf.RutaCarta));
+                            pJugador[i+1].img3UC.Tag = triomf.Id;
+                            ptriomf.imgTriomfUC.Visibility = Visibility.Collapsed;
+                            cartesRepartides++;
+                        }
                     }
                 }
             }
-
             controladorTorn();
         }
 
@@ -447,7 +595,6 @@ namespace Brisca
                 }
             }
             
-            
             if ((pJugador[0].txbJugadorUC.Text.Length >= 3 &&
                 pJugador[1].txbJugadorUC.Text.Length >= 3 &&
                 pJugador[2].txbJugadorUC.Text.Length >= 3 &&
@@ -456,17 +603,12 @@ namespace Brisca
             {
                 
                 zonaj.btnStartUC.Visibility = (Visibility)1;
-                joc_iniciat = true;
                 
                 pJugador[0].txbJugadorUC.IsEnabled = false;
                 pJugador[1].txbJugadorUC.IsEnabled = false;
                 pJugador[2].txbJugadorUC.IsEnabled = false;
                 pJugador[3].txbJugadorUC.IsEnabled = false;
             }
-
-            //borrar al finalitzar proves
-            pJugador[0].txbJugadorUC.IsEnabled = false;
-            zonaj.btnStartUC.Visibility = (Visibility)1;
         }
     }
 }

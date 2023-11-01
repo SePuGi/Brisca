@@ -20,7 +20,6 @@ namespace Brisca.Model
             this.torn = torn;
             this.puntuacio = 0;
             this.carta_jugador = new List<Carta>();
-            //this.carta_jugador = carta_jugador;
         }
 
         public String Nom { get => nom; set => nom = value; }

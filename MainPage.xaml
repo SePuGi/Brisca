@@ -43,7 +43,11 @@
         <!--Cinqueé Grid | Zona de joc | 1-1 -->
         <view:zonaDeJoc x:Name="vZonaJoc" Grid.Column="1" Grid.Row="1"></view:zonaDeJoc>
         <ScrollViewer Grid.Column="0" Grid.Row="0">
-            <TextBlock x:Name="debugWindows" ></TextBlock>
+            <TextBlock x:Name="debugWindows" 
+                       TextAlignment="Center" 
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       FontSize="30"></TextBlock>
         </ScrollViewer>
     </Grid>
     

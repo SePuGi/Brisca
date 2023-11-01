@@ -29,6 +29,11 @@ namespace Brisca.View
             img3BackUC.Visibility = Visibility.Collapsed;
         }
 
+        public TextBlock txbPuntuacioUC
+        {
+            get { return txbPuntuacio; }
+            set {  txbPuntuacio = value; }
+        }
 
 
         public TextBox txbJugadorUC

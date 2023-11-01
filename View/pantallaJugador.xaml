@@ -9,8 +9,8 @@
     d:DesignHeight="300"
     d:DesignWidth="400"
     x:Name="uscRootPantallaJugador">
-
-    <Grid>
+    <!--#166429   |||||| #094F1A-->
+    <Grid BorderBrush="#358A4A" BorderThickness="6" CornerRadius="20" Background="#094F1A">
         <Grid Grid.Column="1" Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"></ColumnDefinition>
@@ -23,7 +23,22 @@
                 <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
 
-            <TextBox x:Name="txbJugador" Grid.Column="1" Grid.Row="0" VerticalAlignment="Center"></TextBox>
+            <TextBox x:Name="txbJugador" 
+                     Grid.Column="1" 
+                     Grid.Row="0" 
+                     VerticalAlignment="Center"
+                     HorizontalAlignment="Center"
+                     TextAlignment="Center"></TextBox>
+
+            <TextBlock x:Name="txbPuntuacio" 
+                     Grid.Column="0" 
+                     Grid.Row="0" 
+                     HorizontalAlignment="Center" 
+                     VerticalAlignment="Center"
+                     Text="0"
+                     TextAlignment="Center"
+                     FontSize="25">
+            </TextBlock>
 
 
             <Image x:Name="img1" Grid.Column="0" Grid.Row="1" Grid.RowSpan="2"/>

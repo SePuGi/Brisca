@@ -20,6 +20,7 @@
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
 
         <Image x:Name="imgTriomf" Grid.Column="1" Grid.Row="1" Grid.RowSpan="2"></Image>

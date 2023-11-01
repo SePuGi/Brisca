@@ -15,13 +15,13 @@ namespace Brisca.Model
         int num_carta;
         String rutaCarta;
 
-        public Carta(int id, string nom_carta, Pal pal_carta, int num_carta, String imCarta)
+        public Carta(int id, string nom_carta, Pal pal_carta, int num_carta, String rutaCarta)
         {
             this.id = id;
             this.nom_carta = nom_carta;
             this.pal_carta = pal_carta;
             this.num_carta = num_carta;
-            this.rutaCarta = imCarta;
+            this.rutaCarta = rutaCarta;
         }
         public int Id { get => id; set => id = value; }
         public String Nom_carta { get => nom_carta; set => nom_carta = value; }
